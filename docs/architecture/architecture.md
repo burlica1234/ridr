@@ -1,19 +1,41 @@
 # 🏗️ Architecture
 
+This document describes the architectural design of the **Ridr** platform.
+
+Ridr is built as a **modular monolith** in the first phase.  
+This architecture provides:
+- clear internal boundaries between domains
+- simpler development and deployment
+- lower operational complexity
+- an easy future path toward service extraction if the platform grows significantly
+
+---
+
+## Architecture Style
+
+**Architecture Style:** Modular Monolith
+
+### Why this approach?
+- the project is still in an early product stage
+- business logic is complex, but operational scale is still manageable
+- strong module boundaries are needed, but microservices would add unnecessary infrastructure complexity
+- the system can later evolve toward service decomposition if traffic, team size, or operational constraints justify it
+
+---
+
 ## System Diagrams
 
 ### Flowchart
 
 ```mermaid
 flowchart LR
-    USER[User / Admin / Moderator] -->|REST HTTPS| FE[React Frontend]
-    USER -->|WebSocket future| APIGW[API Gateway / Reverse Proxy]
-    FE -->|REST API| APIGW
+    USER[End User / Admin / Moderator] -->|REST HTTPS| FE[React Frontend]
+    FE -->|REST API| APIGW[API Gateway / Reverse Proxy]
 
-    subgraph BACKEND["Ridr Backend Platform"]
+    subgraph RIDR["Ridr Backend Platform"]
         direction TB
 
-        subgraph MODULES["Core Modules"]
+        subgraph MODULES["Core Application Modules"]
             direction LR
             AUTH[Identity Module]
             VEH[Vehicle Module]
@@ -25,15 +47,15 @@ flowchart LR
             ADMIN[Admin Module]
         end
 
-        PG[(PostgreSQL + PostGIS)]
-        REDIS[(Redis Cache)]
+        DB[(PostgreSQL + PostGIS)]
+        CACHE[(Redis Cache)]
     end
 
     subgraph EXTERNAL["External Systems"]
         OSRM[OSRM Routing Engine]
         OSM[OpenStreetMap / Tile Provider]
-        STORAGE[MinIO / S3 Future]
-        MQ[RabbitMQ Future]
+        STORAGE[Object Storage Future]
+        MQ[Message Broker Future]
     end
 
     APIGW --> AUTH
@@ -45,34 +67,28 @@ flowchart LR
     APIGW --> ROUTE
     APIGW --> ADMIN
 
-    AUTH --> PG
-    VEH --> PG
-    CITY --> PG
-    RULE --> PG
-    PARK --> PG
-    REP --> PG
-    ROUTE --> PG
-    ADMIN --> PG
+    AUTH --> DB
+    VEH --> DB
+    CITY --> DB
+    RULE --> DB
+    PARK --> DB
+    REP --> DB
+    ROUTE --> DB
+    ADMIN --> DB
 
-    PARK --> REDIS
-    RULE --> REDIS
-    ROUTE --> REDIS
+    PARK --> CACHE
+    RULE --> CACHE
+    ROUTE --> CACHE
 
     FE --> OSM
     ROUTE --> OSRM
     REP --> STORAGE
     ADMIN --> MQ
-    REP --> MQ
-    PARK --> MQ
 
-    ROUTE --> CITY
     ROUTE --> RULE
     ROUTE --> PARK
     ROUTE --> REP
-    RULE --> VEH
-    ADMIN --> RULE
-    ADMIN --> PARK
-    ADMIN --> REP
+    ROUTE --> CITY
 ```
 
 ## C4 Model Overview
@@ -89,12 +105,12 @@ graph TB
     MUNICIPAL[Municipal / Local Regulation Sources]
     STORAGE[Object Storage Future]
 
-    USER -->|search routes, check parking, report incidents| SYSTEM
+    USER -->|search routes, discover parking, report incidents| SYSTEM
     ADMIN -->|review reports, validate parking, manage rules| SYSTEM
-    SYSTEM -->|request raw routes| ROUTER
-    SYSTEM -->|map data and tiles| MAPS
-    SYSTEM -->|import local regulations| MUNICIPAL
-    SYSTEM -->|store photos future| STORAGE
+    SYSTEM -->|request route geometry| ROUTER
+    SYSTEM -->|render maps and tiles| MAPS
+    SYSTEM -->|maintain local mobility rules| MUNICIPAL
+    SYSTEM -->|store report media future| STORAGE
 ```
 
 ### C2 - Container Diagram
@@ -110,64 +126,31 @@ flowchart LR
         FE[React Frontend]
     end
 
-    subgraph SYSTEM["Ridr Platform"]
+    subgraph PLATFORM["Ridr Platform"]
         APIGW[API Gateway / Reverse Proxy]
-
-        subgraph CORE["Spring Boot Backend"]
-            direction TB
-            AUTH[Identity Module]
-            VEH[Vehicle Module]
-            CITY[City Module]
-            RULE[Legal Rules Module]
-            PARK[Parking Module]
-            REP[Reports Module]
-            ROUTE[Routing Module]
-            ADMIN[Admin Module]
-        end
-
-        REDIS[(Redis Cache)]
-        PG[(PostgreSQL + PostGIS)]
+        APP[Spring Boot Backend - Modular Monolith]
+        DB[(PostgreSQL + PostGIS)]
+        CACHE[(Redis Cache)]
     end
 
     subgraph EXTERNAL["External Systems"]
         OSRM[OSRM Routing Engine]
         OSM[OpenStreetMap]
-        MINIO[MinIO / S3 Future]
-        MQ[RabbitMQ Future]
+        STORAGE[Object Storage Future]
+        MQ[Message Broker Future]
     end
 
     U1 --> FE
     U2 --> FE
-    FE -->|REST / WebSocket future| APIGW
+    FE -->|REST API| APIGW
+    FE -->|Map tiles| OSM
 
-    APIGW --> AUTH
-    APIGW --> VEH
-    APIGW --> CITY
-    APIGW --> RULE
-    APIGW --> PARK
-    APIGW --> REP
-    APIGW --> ROUTE
-    APIGW --> ADMIN
-
-    AUTH --> PG
-    VEH --> PG
-    CITY --> PG
-    RULE --> PG
-    PARK --> PG
-    REP --> PG
-    ROUTE --> PG
-    ADMIN --> PG
-
-    PARK --> REDIS
-    RULE --> REDIS
-    ROUTE --> REDIS
-
-    FE --> OSM
-    ROUTE --> OSRM
-    REP --> MINIO
-    ADMIN --> MQ
-    REP --> MQ
-    PARK --> MQ
+    APIGW --> APP
+    APP --> DB
+    APP --> CACHE
+    APP --> OSRM
+    APP --> STORAGE
+    APP --> MQ
 ```
 
 ### C3 — Component Diagram (Reservation Service)
@@ -176,7 +159,7 @@ flowchart LR
 flowchart TB
     subgraph RM["Routing Module"]
         API[Route Controller]
-        SVC[Route Service]
+        SERVICE[Route Service]
         OSRMCLIENT[OSRM Client]
         SCORE[Route Scoring Component]
         COMPLIANCE[Compliance Evaluator]
@@ -186,36 +169,36 @@ flowchart TB
         REPO[Route Repository]
     end
 
-    subgraph DB["Platform Data"]
-        PG[(PostgreSQL + PostGIS)]
+    subgraph DATA["Platform Data"]
+        DB[(PostgreSQL + PostGIS)]
         REDIS[(Redis)]
     end
 
-    subgraph EXT["Dependencies"]
-        OSRM[OSRM Routing Engine]
+    subgraph DEPS["Module Dependencies"]
         RULEMOD[Legal Rules Module]
         REPMOD[Reports Module]
         PARKMOD[Parking Module]
         CITYMOD[City Module]
+        OSRM[OSRM Routing Engine]
     end
 
-    API --> SVC
-    SVC --> OSRMCLIENT
-    SVC --> SCORE
-    SVC --> COMPLIANCE
-    SVC --> INCIDENTS
-    SVC --> PARKING
-    SVC --> CACHE
-    SVC --> REPO
+    API --> SERVICE
+    SERVICE --> OSRMCLIENT
+    SERVICE --> SCORE
+    SERVICE --> COMPLIANCE
+    SERVICE --> INCIDENTS
+    SERVICE --> PARKING
+    SERVICE --> CACHE
+    SERVICE --> REPO
 
     OSRMCLIENT --> OSRM
     COMPLIANCE --> RULEMOD
     COMPLIANCE --> CITYMOD
     INCIDENTS --> REPMOD
     PARKING --> PARKMOD
-    REPO --> PG
+    REPO --> DB
     CACHE --> REDIS
-    SCORE --> PG
+    SCORE --> DB
 ```
 
 # 🧩 N-Layer Architecture (inside each microservice)
@@ -225,12 +208,12 @@ flowchart TB
         CTRL[Controller]
     end
 
-    subgraph BUS["Application / Business Layer"]
+    subgraph APP["Application Layer"]
         SVC[Service]
         UC[Use Case Coordinator]
     end
 
-    subgraph DOM["Domain Layer"]
+    subgraph DOMAIN["Domain Layer"]
         ENT[Entities / Domain Objects]
         RULES[Domain Rules / Policies]
         DTO[DTO / Commands / Queries]
@@ -240,7 +223,7 @@ flowchart TB
         REPO[Repository]
     end
 
-    subgraph DATA["Infrastructure Layer"]
+    subgraph INFRA["Infrastructure Layer"]
         DB[(PostgreSQL + PostGIS)]
         CACHE[(Redis)]
         EXT[External Clients]
@@ -336,7 +319,7 @@ sequenceDiagram
     participant REPOSITORY as Route Repository
 
     CLIENT ->> CONTROLLER: POST /api/routes/search
-    CONTROLLER ->> CONTROLLER: Validate DTO
+    CONTROLLER ->> CONTROLLER: Validate request DTO
     CONTROLLER ->> SERVICE: RouteSearchRequest
     SERVICE ->> CACHE: Check cached route result
     CACHE -->> SERVICE: Cache miss
@@ -348,7 +331,7 @@ sequenceDiagram
     REPORTS -->> SERVICE: Incident context
     SERVICE ->> PARKING: Load parking near destination
     PARKING -->> SERVICE: Parking suggestions
-    SERVICE ->> SERVICE: Compute safety, comfort, compliance
+    SERVICE ->> SERVICE: Compute route scores
     SERVICE ->> REPOSITORY: Persist route request and suggestions
     REPOSITORY -->> SERVICE: Stored results
     SERVICE ->> CACHE: Save cached response
