@@ -73,7 +73,6 @@ flowchart LR
     ADMIN --> RULE
     ADMIN --> PARK
     ADMIN --> REP
-    
 ```
 
 ## C4 Model Overview
@@ -81,7 +80,6 @@ flowchart LR
 ### C1 — System Context Diagram
 
 ```mermaid
-
 graph TB
     USER[End User / Rider]
     ADMIN[Admin / Moderator]
@@ -170,7 +168,7 @@ flowchart LR
     ADMIN --> MQ
     REP --> MQ
     PARK --> MQ
-   ```
+```
 
 ### C3 — Component Diagram (Reservation Service)
 
@@ -222,40 +220,40 @@ flowchart TB
 
 # 🧩 N-Layer Architecture (inside each microservice)
 ```mermaid
-    flowchart TB
-  subgraph PRES["Presentation Layer"]
-    CTRL[Controller]
-  end
+flowchart TB
+    subgraph PRES["Presentation Layer"]
+        CTRL[Controller]
+    end
 
-  subgraph BUS["Application / Business Layer"]
-    SVC[Service]
-    UC[Use Case Coordinator]
-  end
+    subgraph BUS["Application / Business Layer"]
+        SVC[Service]
+        UC[Use Case Coordinator]
+    end
 
-  subgraph DOM["Domain Layer"]
-    ENT[Entities / Domain Objects]
-    RULES[Domain Rules / Policies]
-    DTO[DTO / Commands / Queries]
-  end
+    subgraph DOM["Domain Layer"]
+        ENT[Entities / Domain Objects]
+        RULES[Domain Rules / Policies]
+        DTO[DTO / Commands / Queries]
+    end
 
-  subgraph PERS["Persistence Layer"]
-    REPO[Repository]
-  end
+    subgraph PERS["Persistence Layer"]
+        REPO[Repository]
+    end
 
-  subgraph DATA["Infrastructure Layer"]
-    DB[(PostgreSQL + PostGIS)]
-    CACHE[(Redis)]
-    EXT[External Clients]
-  end
+    subgraph DATA["Infrastructure Layer"]
+        DB[(PostgreSQL + PostGIS)]
+        CACHE[(Redis)]
+        EXT[External Clients]
+    end
 
-  CTRL --> SVC
-  SVC --> UC
-  UC --> ENT
-  UC --> RULES
-  SVC --> REPO
-  REPO --> DB
-  SVC --> CACHE
-  SVC --> EXT
+    CTRL --> SVC
+    SVC --> UC
+    UC --> ENT
+    UC --> RULES
+    SVC --> REPO
+    REPO --> DB
+    SVC --> CACHE
+    SVC --> EXT
 ```
 
 ```mermaid
@@ -326,7 +324,7 @@ flowchart TB
 ```
 
 ```mermaid
-    sequenceDiagram
+sequenceDiagram
     participant CLIENT as Client
     participant CONTROLLER as RouteController
     participant SERVICE as RouteService
