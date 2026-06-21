@@ -1,13 +1,12 @@
 package com.endava.personal.service.auth.persistence;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AuthUserRepository extends JpaRepository<AuthUserEntity, UUID>{
+public interface AuthUserRepository extends JpaRepository<AuthUserEntity, UUID> {
 
-    Optional<AuthUserEntity> findByEmail(String email);
+	Optional<AuthUserEntity> findByEmail(String email);
 
-    boolean existsByEmail(String email);
+	boolean existsByEmail(String email);
 }

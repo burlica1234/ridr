@@ -20,15 +20,6 @@
         <module>database</module>
         <module>deploy</module>
         <module>backend</module>
-        <module>backend/services</module>
-        <module>backend/common-libs</module>
-        <module>backend/services/rider-service</module>
-        <module>backend/services/routing-service</module>
-        <module>backend/services/map-intelligence-service</module>
-        <module>backend/services/reporting-service</module>
-        <module>backend/services/vehicle-service</module>
-        <module>backend/services/auth-service</module>
-        <module>backend/gateway</module>
     </modules>
 
     <properties>

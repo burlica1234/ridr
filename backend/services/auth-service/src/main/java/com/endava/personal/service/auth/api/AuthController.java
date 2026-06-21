@@ -10,6 +10,8 @@ import com.endava.personal.service.auth.domain.AuthUser;
 import com.endava.personal.service.auth.mapper.AuthMapper;
 import com.endava.personal.service.auth.service.AuthService;
 import jakarta.validation.Valid;
+import java.security.Principal;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,77 +23,72 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.Principal;
-import java.util.UUID;
-
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
-    private final AuthMapper authMapper;
+	private final AuthService authService;
+	private final AuthMapper authMapper;
 
-    @PostMapping("/register")
-    public ResponseEntity<AuthUserResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
-        AuthUser authUser = authMapper.requestToDomain(request);
-        AuthUser createdAuthUser = authService.register(authUser, request.password());
+	@PostMapping("/register")
+	public ResponseEntity<AuthUserResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
+		AuthUser authUser = authMapper.requestToDomain(request);
+		AuthUser createdAuthUser = authService.register(authUser, request.password());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(authMapper.domainToResponse(createdAuthUser));
-    }
+		return ResponseEntity.status(HttpStatus.CREATED).body(authMapper.domainToResponse(createdAuthUser));
+	}
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
-        AuthSession authSession = authService.login(request.email(), request.password());
-        return ResponseEntity.status(HttpStatus.OK).body(authMapper.domainToResponse(authSession));
-    }
+	@PostMapping("/login")
+	public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
+		AuthSession authSession = authService.login(request.email(), request.password());
+		return ResponseEntity.status(HttpStatus.OK).body(authMapper.domainToResponse(authSession));
+	}
 
-    @GetMapping("/me")
-    public ResponseEntity<AuthUserResponseDto>getCurrentUser(Principal principal) {
-        AuthUser authUser = authService.getCurrentUser(principal.getName());
+	@GetMapping("/me")
+	public ResponseEntity<AuthUserResponseDto> getCurrentUser(Principal principal) {
+        if(principal == null)
+        {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+		AuthUser authUser = authService.getCurrentUser(principal.getName());
 
-        return ResponseEntity.status(HttpStatus.OK).body(authMapper.domainToResponse(authUser));
-    }
+		return ResponseEntity.status(HttpStatus.OK).body(authMapper.domainToResponse(authUser));
+	}
 
-    @GetMapping("/{id}")
-    public ResponseEntity<AuthUserResponseDto> getById(@PathVariable UUID id) {
-        AuthUser authUser = authService.getById(id);
+	@GetMapping("/{id}")
+	public ResponseEntity<AuthUserResponseDto> getById(@PathVariable UUID id) {
+		AuthUser authUser = authService.getById(id);
 
-        return ResponseEntity.ok(authMapper.domainToResponse(authUser));
-    }
+		return ResponseEntity.ok(authMapper.domainToResponse(authUser));
+	}
 
-    @PostMapping("/{id}/change-password")
-    public ResponseEntity<Void> changePassword(
-            @PathVariable UUID id,
-            @Valid @RequestBody ChangePasswordRequestDto request
-    ){
-        authService.changePassword(
-                id,
-                request.currentPassword(),
-                request.newPassword()
-        );
+	@PostMapping("/{id}/change-password")
+	public ResponseEntity<Void> changePassword(@PathVariable UUID id,
+			@Valid @RequestBody ChangePasswordRequestDto request) {
+		authService.changePassword(id, request.currentPassword(), request.newPassword());
 
-        return ResponseEntity.noContent().build();
-    }
+		return ResponseEntity.noContent().build();
+	}
 
-    @PatchMapping("/{id}/lock")
-    public ResponseEntity<AuthUserResponseDto> lockAccount(@PathVariable UUID id) {
-        AuthUser authUser = authService.lockAccount(id);
+	@PatchMapping("/{id}/lock")
+	public ResponseEntity<AuthUserResponseDto> lockAccount(@PathVariable UUID id) {
+		AuthUser authUser = authService.lockAccount(id);
 
-        return ResponseEntity.status(HttpStatus.OK).body(authMapper.domainToResponse(authUser));
-    }
+		return ResponseEntity.status(HttpStatus.OK).body(authMapper.domainToResponse(authUser));
+	}
 
-    @PatchMapping("/{id}/unlock")
-    public ResponseEntity<AuthUserResponseDto> unlockAccount(@PathVariable UUID id) {
-        AuthUser authUser = authService.unlockAccount(id);
+	@PatchMapping("/{id}/unlock")
+	public ResponseEntity<AuthUserResponseDto> unlockAccount(@PathVariable UUID id) {
+		AuthUser authUser = authService.unlockAccount(id);
 
-        return ResponseEntity.status(HttpStatus.OK).body(authMapper.domainToResponse(authUser));
-    }
+		return ResponseEntity.status(HttpStatus.OK).body(authMapper.domainToResponse(authUser));
+	}
 
-    @PatchMapping("/{id}/deactivate")
-    public ResponseEntity<AuthUserResponseDto> deactivateAccount(@PathVariable UUID id) {
-        AuthUser authUser = authService.deactivateAccount(id);
+	@PatchMapping("/{id}/deactivate")
+	public ResponseEntity<AuthUserResponseDto> deactivateAccount(@PathVariable UUID id) {
+		AuthUser authUser = authService.deactivateAccount(id);
 
-        return ResponseEntity.status(HttpStatus.OK).body(authMapper.domainToResponse(authUser));
-    }
+		return ResponseEntity.status(HttpStatus.OK).body(authMapper.domainToResponse(authUser));
+	}
 }

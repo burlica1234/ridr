@@ -1,0 +1,211 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: ridr-postgres
+    restart: unless-stopped
+    environment:
+          POSTGRES_DB: ridr
+          POSTGRES_USER: ridr
+          POSTGRES_PASSWORD: ridr
+    ports:
+          - "5432:5432"
+    volumes:
+          - ridr-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+          test: ["CMD-SHELL", "pg_isready -U ridr -d ridr"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+    networks:
+      - ridr-network
+
+  flyway:
+    image: flyway/flyway:10
+    container_name: ridr-flyway
+    command: -url=jdbc:postgresql://postgres:5432/ridr -user=ridr -password=ridr -connectRetries=60 migrate
+    volumes:
+      - ../database/src/main/resources/db/migration:/flyway/sql
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ridr-network
+
+  gateway:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        MODULE_PATH: backend/gateway
+    container_name: ridr-gateway
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      AUTH_SERVICE_URL: http://auth-service:8081
+      REPORTING_SERVICE_URL: http://reporting-service:8082
+      VEHICLE_SERVICE_URL: http://vehicle-service:8083
+      ROUTING_SERVICE_URL: http://routing-service:8084
+      RIDER_SERVICE_URL: http://rider-service:8085
+      MAP_INTELLIGENCE_SERVICE_URL: http://map-intelligence-service:8086
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - reporting-service
+      - vehicle-service
+      - routing-service
+      - rider-service
+      - map-intelligence-service
+    networks:
+      - ridr-network
+
+  auth-service:
+      build:
+        context: ..
+        dockerfile: Dockerfile
+        args:
+          MODULE_PATH: backend/services/auth-service
+      container_name: ridr-auth-service
+      restart: unless-stopped
+      environment:
+        SERVER_PORT: 8081
+        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ridr
+        SPRING_DATASOURCE_USERNAME: ridr
+        SPRING_DATASOURCE_PASSWORD: ridr
+        SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      ports:
+        - "8081:8081"
+      depends_on:
+        postgres:
+          condition: service_healthy
+        flyway:
+          condition: service_completed_successfully
+      networks:
+        - ridr-network
+
+  reporting-service:
+      build:
+        context: ..
+        dockerfile: Dockerfile
+        args:
+          MODULE_PATH: backend/services/reporting-service
+      container_name: ridr-reporting-service
+      restart: unless-stopped
+      environment:
+        SERVER_PORT: 8082
+        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ridr
+        SPRING_DATASOURCE_USERNAME: ridr
+        SPRING_DATASOURCE_PASSWORD: ridr
+        SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      ports:
+        - "8082:8082"
+      depends_on:
+        postgres:
+          condition: service_healthy
+        flyway:
+          condition: service_completed_successfully
+      networks:
+        - ridr-network
+
+  vehicle-service:
+      build:
+        context: ..
+        dockerfile: Dockerfile
+        args:
+          MODULE_PATH: backend/services/vehicle-service
+      container_name: ridr-vehicle-service
+      restart: unless-stopped
+      environment:
+        SERVER_PORT: 8083
+        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ridr
+        SPRING_DATASOURCE_USERNAME: ridr
+        SPRING_DATASOURCE_PASSWORD: ridr
+        SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      ports:
+        - "8083:8083"
+      depends_on:
+        postgres:
+          condition: service_healthy
+        flyway:
+          condition: service_completed_successfully
+      networks:
+        - ridr-network
+
+  routing-service:
+      build:
+        context: ..
+        dockerfile: Dockerfile
+        args:
+          MODULE_PATH: backend/services/routing-service
+      container_name: ridr-routing-service
+      restart: unless-stopped
+      environment:
+        SERVER_PORT: 8084
+        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ridr
+        SPRING_DATASOURCE_USERNAME: ridr
+        SPRING_DATASOURCE_PASSWORD: ridr
+        SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      ports:
+        - "8084:8084"
+      depends_on:
+        postgres:
+          condition: service_healthy
+        flyway:
+          condition: service_completed_successfully
+      networks:
+        - ridr-network
+
+  rider-service:
+      build:
+        context: ..
+        dockerfile: Dockerfile
+        args:
+          MODULE_PATH: backend/services/rider-service
+      container_name: ridr-rider-service
+      restart: unless-stopped
+      environment:
+        SERVER_PORT: 8085
+        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ridr
+        SPRING_DATASOURCE_USERNAME: ridr
+        SPRING_DATASOURCE_PASSWORD: ridr
+        SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      ports:
+        - "8085:8085"
+      depends_on:
+        postgres:
+          condition: service_healthy
+        flyway:
+          condition: service_completed_successfully
+      networks:
+        - ridr-network
+
+  map-intelligence-service:
+      build:
+        context: ..
+        dockerfile: Dockerfile
+        args:
+          MODULE_PATH: backend/services/map-intelligence-service
+      container_name: ridr-map-intelligence-service
+      restart: unless-stopped
+      environment:
+        SERVER_PORT: 8086
+        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ridr
+        SPRING_DATASOURCE_USERNAME: ridr
+        SPRING_DATASOURCE_PASSWORD: ridr
+        SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      ports:
+        - "8086:8086"
+      depends_on:
+        postgres:
+          condition: service_healthy
+        flyway:
+          condition: service_completed_successfully
+      networks:
+        - ridr-network
+
+volumes:
+  ridr-postgres-data:
+
+networks:
+  ridr-network:
+    driver: bridge
