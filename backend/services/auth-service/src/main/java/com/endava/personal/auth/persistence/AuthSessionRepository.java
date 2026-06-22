@@ -10,10 +10,10 @@ import org.springframework.data.repository.query.Param;
 
 public interface AuthSessionRepository extends JpaRepository<AuthSessionEntity, UUID> {
 
-    Optional<AuthSessionEntity> findByRefreshTokenHash(String refreshTokenHash);
+	Optional<AuthSessionEntity> findByRefreshTokenHash(String refreshTokenHash);
 
-    @Modifying
-    @Query("update AuthSessionEntity s set s.revokedAt = :revokedAt "
-            + "where s.userId = :userId and s.revokedAt is null")
-    int revokeAllActiveForUser(@Param("userId") UUID userId, @Param("revokedAt") OffsetDateTime revokedAt);
+	@Modifying
+	@Query("update AuthSessionEntity s set s.revokedAt = :revokedAt "
+			+ "where s.userId = :userId and s.revokedAt is null")
+	int revokeAllActiveForUser(@Param("userId") UUID userId, @Param("revokedAt") OffsetDateTime revokedAt);
 }

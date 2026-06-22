@@ -1,9 +1,9 @@
 package com.endava.personal.auth.service.validator;
 
-import com.endava.personal.common.exception.ConflictException;
-import com.endava.personal.common.exception.UnauthorizedException;
 import com.endava.personal.auth.domain.AccountStatus;
 import com.endava.personal.auth.domain.AuthUser;
+import com.endava.personal.common.exception.ConflictException;
+import com.endava.personal.common.exception.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;

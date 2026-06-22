@@ -17,29 +17,29 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface AuthMapper {
 
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "passwordHash", ignore = true)
-    @Mapping(target = "role", ignore = true)
-    @Mapping(target = "accountStatus", ignore = true)
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
-    AuthUser requestToDomain(RegisterRequestDto request);
+	@Mapping(target = "id", ignore = true)
+	@Mapping(target = "passwordHash", ignore = true)
+	@Mapping(target = "role", ignore = true)
+	@Mapping(target = "accountStatus", ignore = true)
+	@Mapping(target = "createdAt", ignore = true)
+	@Mapping(target = "updatedAt", ignore = true)
+	AuthUser requestToDomain(RegisterRequestDto request);
 
-    AuthUserResponseDto domainToResponse(AuthUser authUser);
+	AuthUserResponseDto domainToResponse(AuthUser authUser);
 
-    @Mapping(target = "expiresIn", source = "expiresInSeconds")
-    LoginResponseDto domainToResponse(AuthTokens authTokens);
+	@Mapping(target = "expiresIn", source = "expiresInSeconds")
+	LoginResponseDto domainToResponse(AuthTokens authTokens);
 
-    AuthUserEntity domainToEntity(AuthUser authUser);
+	AuthUserEntity domainToEntity(AuthUser authUser);
 
-    AuthUser entityToDomain(AuthUserEntity entity);
+	AuthUser entityToDomain(AuthUserEntity entity);
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "passwordHash", source = "passwordHash")
-    @Mapping(target = "role", source = "role")
-    @Mapping(target = "accountStatus", source = "accountStatus")
-    @Mapping(target = "createdAt", source = "createdAt")
-    @Mapping(target = "updatedAt", source = "updatedAt")
-    void updateDomainForRegister(UUID id, String passwordHash, Role role, AccountStatus accountStatus,
-                                 OffsetDateTime createdAt, OffsetDateTime updatedAt, @MappingTarget AuthUser authUser);
+	@Mapping(target = "id", source = "id")
+	@Mapping(target = "passwordHash", source = "passwordHash")
+	@Mapping(target = "role", source = "role")
+	@Mapping(target = "accountStatus", source = "accountStatus")
+	@Mapping(target = "createdAt", source = "createdAt")
+	@Mapping(target = "updatedAt", source = "updatedAt")
+	void updateDomainForRegister(UUID id, String passwordHash, Role role, AccountStatus accountStatus,
+			OffsetDateTime createdAt, OffsetDateTime updatedAt, @MappingTarget AuthUser authUser);
 }

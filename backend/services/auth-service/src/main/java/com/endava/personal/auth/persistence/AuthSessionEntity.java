@@ -17,21 +17,21 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AuthSessionEntity {
 
-    @Id
-    private UUID id;
+	@Id
+	private UUID id;
 
-    @Column(nullable = false)
-    private UUID userId;
+	@Column(nullable = false)
+	private UUID userId;
 
-    @Column(nullable = false, unique = true, length = 255)
-    private String refreshTokenHash;
+	@Column(nullable = false, unique = true, length = 255)
+	private String refreshTokenHash;
 
-    @Column(nullable = false)
-    private OffsetDateTime expiresAt;
+	@Column(nullable = false)
+	private OffsetDateTime expiresAt;
 
-    @Column
-    private OffsetDateTime revokedAt;
+	@Column
+	private OffsetDateTime revokedAt;
 
-    @Column(nullable = false)
-    private OffsetDateTime createdAt;
+	@Column(nullable = false)
+	private OffsetDateTime createdAt;
 }
