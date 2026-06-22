@@ -77,7 +77,7 @@ class AuthServiceTest {
 	}
 
 	private void stubTokenIssuing() {
-        when(jwtService.generateToken(any(), eq(EMAIL), eq(Role.RIDER.name()))).thenReturn(ACCESS_TOKEN);
+		when(jwtService.generateToken(any(), eq(EMAIL), eq(Role.RIDER.name()))).thenReturn(ACCESS_TOKEN);
 		when(refreshTokenService.generateRawToken()).thenReturn(RAW_REFRESH);
 		when(refreshTokenService.hash(RAW_REFRESH)).thenReturn(REFRESH_HASH);
 	}
@@ -135,7 +135,7 @@ class AuthServiceTest {
 		when(authSessionRepository.findByRefreshTokenHash(REFRESH_HASH)).thenReturn(Optional.of(session));
 		when(authUserRepository.findById(userId)).thenReturn(Optional.of(entity));
 		when(authMapper.entityToDomain(entity)).thenReturn(user);
-        when(jwtService.generateToken(any(), eq(EMAIL), eq(Role.RIDER.name()))).thenReturn(ACCESS_TOKEN);
+		when(jwtService.generateToken(any(), eq(EMAIL), eq(Role.RIDER.name()))).thenReturn(ACCESS_TOKEN);
 		when(refreshTokenService.generateRawToken()).thenReturn("rotated-refresh");
 		when(refreshTokenService.hash("rotated-refresh")).thenReturn("rotated-hash");
 

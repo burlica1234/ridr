@@ -193,7 +193,7 @@ public class AuthService {
 	}
 
 	private AuthTokens issueTokens(AuthUser authUser) {
-        String accessToken = jwtService.generateToken(authUser.getId(), authUser.getEmail(), authUser.getRole().name());
+		String accessToken = jwtService.generateToken(authUser.getId(), authUser.getEmail(), authUser.getRole().name());
 		String rawRefreshToken = createRefreshSession(authUser.getId());
 		long expiresInSeconds = jwtProperties.expirationMs() / 1000;
 
