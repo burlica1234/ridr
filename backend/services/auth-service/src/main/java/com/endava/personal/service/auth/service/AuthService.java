@@ -54,7 +54,7 @@ public class AuthService {
 		AuthUser authUser = authMapper.entityToDomain(entity);
 		authValidator.validateCredentials(authUser, rawPassword);
 
-		String accessToken = jwtService.generateToken(authUser.getEmail());
+        String accessToken = jwtService.generateToken(authUser.getEmail(), authUser.getRole().name());
 
 		return new AuthSession(accessToken, TOKEN_TYPE);
 	}

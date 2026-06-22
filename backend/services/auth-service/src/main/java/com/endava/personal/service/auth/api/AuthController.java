@@ -47,13 +47,9 @@ public class AuthController {
 
 	@GetMapping("/me")
 	public ResponseEntity<AuthUserResponseDto> getCurrentUser(Principal principal) {
-        if(principal == null)
-        {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-		AuthUser authUser = authService.getCurrentUser(principal.getName());
+        AuthUser authUser = authService.getCurrentUser(principal.getName());
 
-		return ResponseEntity.status(HttpStatus.OK).body(authMapper.domainToResponse(authUser));
+        return ResponseEntity.status(HttpStatus.OK).body(authMapper.domainToResponse(authUser));
 	}
 
 	@GetMapping("/{id}")
