@@ -41,4 +41,7 @@ app:
     jwt:
       # Must be at least 32 chars for HS256
       secret: ${JWT_SECRET:change-me-change-me-change-me-123456}
+      # Access token lifetime: 1 hour
       expirationMs: ${JWT_EXPIRATION_MS:3600000}
+      # Refresh token lifetime: 30 days
+      refreshExpirationMs: ${JWT_REFRESH_EXPIRATION_MS:2592000000}
